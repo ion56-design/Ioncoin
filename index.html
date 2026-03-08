@@ -1,0 +1,189 @@
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+    // Инициализация Telegram WebApp
+    const tg = window.Telegram.WebApp;
+    tg.expand(); // Развернуть на весь экран
+</script>
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Ioncoin Clicker</title>
+    <style>
+        body {
+            margin: 0;
+            background: radial-gradient(circle, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #ui {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .balance-label { font-size: 1.2rem; opacity: 0.8; }
+        .balance-value { font-size: 3.5rem; font-weight: bold; color: #4ecca3; text-shadow: 0 0 20px rgba(78, 204, 163, 0.4); }
+
+        /* Монетка Ioncoin */
+        #coin-container {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.05s;
+        }
+
+        #coin-container:active { transform: scale(0.95); }
+
+        #coin {
+            width: 220px;
+            height: 220px;
+            background: linear-gradient(135deg, #f9d423 0%, #ff4e50 100%);
+            border-radius: 50%;
+            border: 10px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 50px rgba(249, 212, 35, 0.3), inset 0 0 30px rgba(0,0,0,0.2);
+        }
+
+        #coin span {
+            font-size: 100px;
+            font-weight: 900;
+            color: white;
+            text-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+        }
+
+        /* Магазин */
+        #shop {
+            margin-top: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 300px;
+        }
+
+        .upgrade-btn {
+            width: 100%;
+            padding: 15px;
+            background: #4ecca3;
+            border: none;
+            border-radius: 10px;
+            color: #1a1a2e;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .upgrade-btn:disabled {
+            background: #34495e;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .upgrade-btn:hover:not(:disabled) { background: #45b793; transform: translateY(-2px); }
+        .info { font-size: 0.9rem; margin-top: 10px; opacity: 0.6; text-align: center; }
+
+        /* Эффект клика (+1) */
+        .plus-one {
+            position: absolute;
+            color: #4ecca3;
+            font-weight: bold;
+            font-size: 24px;
+            pointer-events: none;
+            animation: float-up 0.8s ease-out forwards;
+        }
+
+        @keyframes float-up {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-100px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <div class="balance-label">Ваш баланс</div>
+        <div class="balance-value"><span id="balance">0</span> I</div>
+        <div style="margin-top: 10px; opacity: 0.7;">Клик: <span id="click-power">1</span> Ioncoin</div>
+    </div>
+
+    <div id="coin-container">
+        <div id="coin">
+            <span>I</span>
+        </div>
+    </div>
+
+    <div id="shop">
+        <button id="upgrade-btn" class="upgrade-btn" disabled>
+            КУПИТЬ X2 КЛИК
+        </button>
+        <div id="upgrade-info" class="info">Цена: 100 Ioncoins</div>
+    </div>
+
+    <script>
+        let balance = 0;
+        let clickPower = 1;
+        let upgradeCost = 100;
+
+        const balanceEl = document.getElementById('balance');
+        const clickPowerEl = document.getElementById('click-power');
+        const upgradeBtn = document.getElementById('upgrade-btn');
+        const upgradeInfo = document.getElementById('upgrade-info');
+        const coinContainer = document.getElementById('coin-container');
+
+        // Функция клика
+        coinContainer.addEventListener('mousedown', (e) => {
+            balance += clickPower;
+            updateUI();
+            createPlusNumber(e.clientX, e.clientY);
+        });
+
+        // Покупка улучшения
+        upgradeBtn.addEventListener('click', () => {
+            if (balance >= upgradeCost) {
+                balance -= upgradeCost;
+                clickPower *= 2; // Умножаем клик на 2
+                upgradeCost *= 5; // Следующее улучшение дороже
+                updateUI();
+            }
+        });
+
+        function updateUI() {
+            balanceEl.innerText = Math.floor(balance);
+            clickPowerEl.innerText = clickPower;
+            upgradeInfo.innerText = `Цена: ${upgradeCost} Ioncoins`;
+
+            // Проверка доступности кнопки
+            if (balance >= upgradeCost) {
+                upgradeBtn.disabled = false;
+            } else {
+                upgradeBtn.disabled = true;
+            }
+        }
+
+        // Анимация вылетающих цифр
+        function createPlusNumber(x, y) {
+            const el = document.createElement('div');
+            el.className = 'plus-one';
+            el.innerText = `+${clickPower}`;
+            el.style.left = `${x - 10}px`;
+            el.style.top = `${y - 20}px`;
+            document.body.appendChild(el);
+
+            setTimeout(() => {
+                el.remove();
+            }, 800);
+        }
+    </script>
+</body>
+</html>
