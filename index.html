@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Ioncoin Clicker </title>
     <style>
         body {
@@ -22,7 +22,7 @@
 
         #ui {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .balance-value { 
@@ -128,6 +128,21 @@
             0% { opacity: 1; transform: translateY(0); }
             100% { opacity: 0; transform: translateY(-120px); }
         }
+
+        /* Заголовок магазина с крестиком */
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .close-shop {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -135,7 +150,9 @@
     <div id="ui">
         <div style="opacity: 0.7;">Баланс Ioncoin</div>
         <div class="balance-value" id="balance">0</div>
-        <div style="font-size: 0.9rem; color: #4ecca3;">Сила тапа: <span id="click-power">1</span></div>
+        <div style="font-size: 0.9rem; color: #4ecca3;">
+            Сила тапа: <span id="click-power">1</span> • Множитель: x<span id="multiplier-value">1</span>
+        </div>
     </div>
 
     <div class="nav-bar">
@@ -144,57 +161,88 @@
     </div>
 
     <div id="coin-container">
-        <!-- ЗАМЕНИ 'coin.png' НА НАЗВАНИЕ СВОЕГО ФАЙЛА -->
         <img src="photo_5289875249144993768_y.jpg" id="coin-image" alt="Ioncoin">
     </div>
 
-    <!-- Магазин -->
-    <div id="shop">
-        <div class="item" id="item-lambo">
-            <div>
-                <span class="item-name">🚗 Lamborghini</span><br>
-                <span class="info" style="margin:0; display:block;">Цена: 100000 IonCoin</span>
-            </div>
-            <button id="buy-lambo" class="upgrade-btn">Купить Lamborghini</button>
+    <!-- Магазин (скрывается/показывается целиком, в нем будет Ламборгини и бусты) -->
+    <div id="shop" style="display:none;">
+        <div class="shop-header">
+            <strong>Магазин</strong>
+            <button id="close-shop" class="close-shop" aria-label="Закрыть магазин">✖</button>
         </div>
 
-        <!-- Можно оставить существующие элементы магазина или они могут быть удалены -->
+        <!-- Lamborghini (изображение в магазине) -->
+        <div class="item" id="item-lambo" style="display:flex; align-items:center; gap:12px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <img src="images/lambo.png" alt="Lamborghini" style="width:40px; height:40px; object-fit:cover;">
+                <span class="item-name" style="font-size:1rem;">Lamborghini</span>
+            </div>
+            <div>
+                <div class="info" style="margin:0 0 6px 0;">Цена: 100000 IonCoin</div>
+                <button id="buy-lambo" class="upgrade-btn">Купить Lamborghini</button>
+            </div>
+        </div>
+
+        <!-- Бустр boost x2 -->
+        <div class="item" id="item-x2" style="display:flex; align-items:center; justify-content:space-between;">
+            <div>
+                <span class="item-name">Удвоение клика</span><br>
+                <span class="info" style="margin:0;">Цена: 500 IonCoin</span>
+            </div>
+            <button id="buy-x2" class="upgrade-btn">Купить</button>
+        </div>
+
         <div class="info" style="margin-top:10px;">
-            В магазине можно купить Lamborghini за 100000 IonCoin. Инвентарь обновится после покупки.
+            Инвентарь обновится после покупки. Нажмите крестик чтобы выйти.
         </div>
     </div>
 
     <!-- Инвентарь -->
     <div id="inventory-panel" style="display:none;">
-        <h3 style="margin-top:0;">Инвентарь</h3>
+        <div class="shop-header" style="margin-bottom:8px;">
+            <strong>Инвентарь</strong>
+        </div>
         <div id="inventory-list" class="info" style="text-align:left; min-height:20px;">
             Инвентарь пуст.
         </div>
     </div>
 
     <script>
-        // Инициализация данных (загрузка из памяти или дефолт)
-        let balance = parseInt(localStorage.getItem('ion_balance')) || 0;
-        let clickPower = parseInt(localStorage.getItem('ion_power')) || 1;
-        let inventory = JSON.parse(localStorage.getItem('ion_inventory') || '[]');
-
-        // Элементы на странице
+        // Элементы
         const balanceEl = document.getElementById('balance');
         const clickPowerEl = document.getElementById('click-power');
-        const coinContainer = document.getElementById('coin-container');
-        const buyLamboBtn = document.getElementById('buy-lambo');
-        const inventoryPanel = document.getElementById('inventory-panel');
-        const shopPanel = document.getElementById('shop');
-        const inventoryListEl = document.getElementById('inventory-list');
+        const multiplierEl = document.getElementById('multiplier-value');
         const btnShop = document.getElementById('btn-shop');
         const btnInventory = document.getElementById('btn-inventory');
+        const shopPanel = document.getElementById('shop');
+        const inventoryPanel = document.getElementById('inventory-panel');
+        const inventoryListEl = document.getElementById('inventory-list');
+        const closeShopBtn = document.getElementById('close-shop');
+        const buyLamboBtn = document.getElementById('buy-lambo');
+        const buyX2Btn = document.getElementById('buy-x2');
+        const itemLambo = document.getElementById('item-lambo');
+        const coinContainer = document.getElementById('coin-container');
+        const image = document.getElementById('coin-image');
 
-        function renderBalance() {
+        // Базовые параметры
+        let balance = parseInt(localStorage.getItem('ion_balance')) || 0;
+        let clickPower = parseInt(localStorage.getItem('ion_power')) || 1;
+        let clickMultiplier = parseInt(localStorage.getItem('ion_multiplier')) || 1;
+        let inventory = JSON.parse(localStorage.getItem('ion_inventory') || '[]');
+        // Буст: стоимость
+        const X2_PRICE = 500;
+        // Цена ламбо
+        const LAMBO_PRICE = 100000;
+
+        // Рендер функций
+        function render() {
             balanceEl.textContent = balance;
-            // включение/выключение кнопки покупки в зависимости от баланса
-            if (buyLamboBtn) {
-                buyLamboBtn.disabled = balance < 100000;
-            }
+            clickPowerEl.textContent = clickPower;
+            multiplierEl.textContent = clickMultiplier;
+            // доступность покупки лямбы/буста
+            buyLamboBtn.disabled = balance < LAMBO_PRICE || inventory.includes('lambo');
+            buyX2Btn.disabled = balance < X2_PRICE;
+            renderInventory();
         }
 
         function renderInventory() {
@@ -203,66 +251,100 @@
                 inventoryListEl.textContent = 'Инвентарь пуст.';
             } else {
                 inventoryListEl.innerHTML = inventory.map(it => {
-                    if (it === 'lambo') return '🚗 Lamborghini';
+                    if (it === 'lambo') {
+                        return '🚗 Lamborghini';
+                    }
+                    if (it === 'x2') {
+                        return '💥 Удвоение клика';
+                    }
                     return it;
                 }).map(name => XXXINLINECODEXXX0XXXINLINECODEXXX).join('');
             }
         }
 
-        function showSection(name) {
-            if (name === 'shop') {
-                shopPanel.style.display = 'block';
-                inventoryPanel.style.display = 'none';
-            } else {
-                shopPanel.style.display = 'none';
-                inventoryPanel.style.display = 'block';
-            }
+        function saveState() {
+            localStorage.setItem('ion_balance', balance);
+            localStorage.setItem('ion_power', clickPower);
+            localStorage.setItem('ion_multiplier', clickMultiplier);
+            localStorage.setItem('ion_inventory', JSON.stringify(inventory));
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // инициализация отображения
-            renderBalance();
-            renderInventory();
-            showSection('shop');
+        // Управление магазином
+        btnShop.addEventListener('click', () => {
+            shopPanel.style.display = 'block';
+            inventoryPanel.style.display = 'none';
         });
 
-        // клик по монетке — зарабатываем монеты
-        coinContainer.addEventListener('click', () => {
-            balance += clickPower;
-            localStorage.setItem('ion_balance', balance);
-            renderBalance();
-            // простая всплывашка
-            const el = document.createElement('span');
-            el.className = 'plus-one';
-            el.textContent = '+' + clickPower;
-            coinContainer.appendChild(el);
-            setTimeout(() => el.remove(), 800);
+        closeShopBtn.addEventListener('click', () => {
+            shopPanel.style.display = 'none';
         });
 
-        // покупка Lamborghini
-        buyLamboBtn && buyLamboBtn.addEventListener('click', () => {
-            const price = 100000;
+        btnInventory.addEventListener('click', () => {
+            inventoryPanel.style.display = 'block';
+            shopPanel.style.display = 'none';
+        });
+
+        // Покупка Lamborghini
+        buyLamboBtn?.addEventListener('click', () => {
             if (inventory.includes('lambo')) {
                 alert('У вас уже есть Lamborghini.');
                 return;
             }
-            if (balance >= price) {
-                balance -= price;
+            if (balance >= LAMBO_PRICE) {
+                balance -= LAMBO_PRICE;
                 inventory.push('lambo');
-                localStorage.setItem('ion_balance', balance);
-                localStorage.setItem('ion_inventory', JSON.stringify(inventory));
-                renderBalance();
-                renderInventory();
-                alert('Покупка выполнена: Lamborghini добавлена в инвентарь.');
-                buyLamboBtn.disabled = true;
+                saveState();
+                render();
             } else {
                 alert('Недостаточно IonCoin.');
             }
         });
 
-        // навигация
-        btnShop.addEventListener('click', () => showSection('shop'));
-        btnInventory.addEventListener('click', () => showSection('inventory'));
+        // Покупка буста x2
+        buyX2Btn?.addEventListener('click', () => {
+            if (inventory.includes('x2')) {
+                alert('У вас уже активирован удвоитель клика.');
+                return;
+            }
+            if (balance >= X2_PRICE) {
+                balance -= X2_PRICE;
+                inventory.push('x2');
+                clickMultiplier *= 2; // удвоение клика
+                saveState();
+                render();
+            } else {
+                alert('Недостаточно IonCoin.');
+            }
+        });
+
+        // Кликом по монете зарабатываем IonCoin
+        coinContainer.addEventListener('click', () => {
+            // реальный выигрыш: power per click = базовый power * multiplier
+            const gain = Math.max(1, Math.floor(clickPower * clickMultiplier));
+            balance += gain;
+            // всплывашка
+            const el = document.createElement('span');
+            el.className = 'plus-one';
+            el.textContent = '+' + gain;
+            coinContainer.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+
+            saveState();
+            render();
+        });
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            // По умолчанию показываем кнопку магазина (можно оставить как есть)
+            render();
+        });
+
+        // Можете вынести стиль и логику по клавише Esc для закрытия магазина
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && shopPanel.style.display === 'block') {
+                shopPanel.style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
