@@ -59,7 +59,7 @@
         .nav-bar {
             display: flex;
             gap: 12px;
-            margin: 12px 0 0;
+            margin: 0 0 16px 0; /* чуть выше shop/inventory чтобы не касались кнопок */
         }
         .nav-btn {
             padding: 10px 14px;
@@ -143,6 +143,19 @@
             font-size: 20px;
             cursor: pointer;
         }
+
+        /* Инвентарь заголовок/листинг */
+        #inventory-panel h3 {
+            margin: 0 0 6px 0;
+        }
+
+        /* Локальные пути к изображениям можно заменить на URL, если нужно */
+        .item-img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -164,7 +177,7 @@
         <img src="photo_5289875249144993768_y.jpg" id="coin-image" alt="Ioncoin">
     </div>
 
-    <!-- Магазин (скрывается/показывается целиком, в нем будет Ламборгини и бусты) -->
+    <!-- Магазин (скрывается/показывается целиком, в нём будет Ламборгини и бусты) -->
     <div id="shop" style="display:none;">
         <div class="shop-header">
             <strong>Магазин</strong>
@@ -174,7 +187,7 @@
         <!-- Lamborghini (изображение в магазине) -->
         <div class="item" id="item-lambo" style="display:flex; align-items:center; gap:12px;">
             <div style="display:flex; align-items:center; gap:8px;">
-                <img src="images/lambo.png" alt="Lamborghini" style="width:40px; height:40px; object-fit:cover;">
+                <img src="images/lambo.png" alt="Lamborghini" class="item-img" style="width:40px; height:40px;">
                 <span class="item-name" style="font-size:1rem;">Lamborghini</span>
             </div>
             <div>
@@ -183,17 +196,20 @@
             </div>
         </div>
 
-        <!-- Бустр boost x2 -->
+        <!-- Бустр boost в виде картинки -->
         <div class="item" id="item-x2" style="display:flex; align-items:center; justify-content:space-between;">
-            <div>
-                <span class="item-name">Удвоение клика</span><br>
-                <span class="info" style="margin:0;">Цена: 500 IonCoin</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <img src="images/x2.png" alt="Удвоение клика" class="item-img" style="width:40px; height:40px;">
+                <span class="item-name" style="font-size:1rem;">Удвоение клика</span>
             </div>
-            <button id="buy-x2" class="upgrade-btn">Купить</button>
+            <div>
+                <div class="info" style="margin:0 0 6px 0;">Цена: 500 IonCoin</div>
+                <button id="buy-x2" class="upgrade-btn">Купить</button>
+            </div>
         </div>
 
         <div class="info" style="margin-top:10px;">
-            Инвентарь обновится после покупки. Нажмите крестик чтобы выйти.
+            Инвентарь обновится после покупки.
         </div>
     </div>
 
@@ -229,9 +245,8 @@
         let clickPower = parseInt(localStorage.getItem('ion_power')) || 1;
         let clickMultiplier = parseInt(localStorage.getItem('ion_multiplier')) || 1;
         let inventory = JSON.parse(localStorage.getItem('ion_inventory') || '[]');
-        // Буст: стоимость
+        // цены
         const X2_PRICE = 500;
-        // Цена ламбо
         const LAMBO_PRICE = 100000;
 
         // Рендер функций
@@ -239,9 +254,9 @@
             balanceEl.textContent = balance;
             clickPowerEl.textContent = clickPower;
             multiplierEl.textContent = clickMultiplier;
-            // доступность покупки лямбы/буста
-            buyLamboBtn.disabled = balance < LAMBO_PRICE || inventory.includes('lambo');
-            buyX2Btn.disabled = balance < X2_PRICE;
+            // доступность покупки
+            if (buyLamboBtn) buyLamboBtn.disabled = balance < LAMBO_PRICE || inventory.includes('lambo');
+            if (buyX2Btn) buyX2Btn.disabled = balance < X2_PRICE;
             renderInventory();
         }
 
@@ -252,13 +267,13 @@
             } else {
                 inventoryListEl.innerHTML = inventory.map(it => {
                     if (it === 'lambo') {
-                        return '🚗 Lamborghini';
+                        return '<div style="display:flex; align-items:center; gap:6px;"><img src="images/lambo.png" alt="Lamborghini" style="width:20px; height:20px; object-fit:cover;"> Lamborghini</div>';
                     }
                     if (it === 'x2') {
-                        return '💥 Удвоение клика';
+                        return '<div style="display:flex; align-items:center; gap:6px;"><img src="images/x2.png" alt="Удвоение клика" style="width:20px; height:20px; object-fit:cover;"> Удвоение клика</div>';
                     }
-                    return it;
-                }).map(name => XXXINLINECODEXXX0XXXINLINECODEXXX).join('');
+                    return XXXINLINECODEXXX0XXXINLINECODEXXX;
+                }).map(name => XXXINLINECODEXXX1XXXINLINECODEXXX).join('');
             }
         }
 
@@ -300,7 +315,7 @@
             }
         });
 
-        // Покупка буста x2
+        // Покупка буста x2 (предусмотрено как фото в магазине)
         buyX2Btn?.addEventListener('click', () => {
             if (inventory.includes('x2')) {
                 alert('У вас уже активирован удвоитель клика.');
@@ -319,7 +334,7 @@
 
         // Кликом по монете зарабатываем IonCoin
         coinContainer.addEventListener('click', () => {
-            // реальный выигрыш: power per click = базовый power * multiplier
+            // gain = base power * multiplier
             const gain = Math.max(1, Math.floor(clickPower * clickMultiplier));
             balance += gain;
             // всплывашка
@@ -335,11 +350,10 @@
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', () => {
-            // По умолчанию показываем кнопку магазина (можно оставить как есть)
             render();
         });
 
-        // Можете вынести стиль и логику по клавише Esc для закрытия магазина
+        // Закрытие магазина по Escape (удобно)
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && shopPanel.style.display === 'block') {
                 shopPanel.style.display = 'none';
