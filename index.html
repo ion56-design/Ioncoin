@@ -1,364 +1,384 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Ioncoin Clicker </title>
-    <style>
-        body {
-            margin: 0;
-            background: radial-gradient(circle, #1a1a2e 0%, #0f1219 100%);
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Ioncoin Clicker </title>
+  <style>
+    /* Общие стили */
+    body {
+      margin: 0;
+      background: radial-gradient(circle, #1a1a2e 0%, #0f1219 100%);
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-        #ui {
-            text-align: center;
-            margin-bottom: 10px;
-        }
+    #ui {
+      text-align: center;
+      margin-bottom: 10px;
+    }
 
-        .balance-value { 
-            font-size: 3.5rem; 
-            font-weight: bold; 
-            color: #4ecca3; 
-            text-shadow: 0 0 20px rgba(78, 204, 163, 0.4); 
-            margin: 10px 0;
-        }
+    .balance-value { 
+      font-size: 3.5rem; 
+      font-weight: bold; 
+      color: #4ecca3; 
+      text-shadow: 0 0 20px rgba(78, 204, 163, 0.4); 
+      margin: 10px 0;
+    }
 
-        /* Контейнер для твоей картинки */
-        #coin-container {
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            width: 250px;
-            height: 250px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    /* Контейнер для твоей картинки (кнопка монеты) */
+    #coin-container {
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      width: 140px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: none;           /* убираем видимую рамку */
+      outline: none;          /* убираем фокус-обводку */
+      background: transparent; /* прозрачный фон */
+      -webkit-tap-highlight-color: transparent;
+    }
+    #coin-container:active { transform: scale(0.92); }
 
-        #coin-container:active { transform: scale(0.92); }
+    #coin-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      /* PNG без фона будет выглядеть чисто */
+    }
 
-        /* Стили для твоего фото */
-        #coin-image {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            filter: drop-shadow(0 0 20px rgba(78, 204, 163, 0.3));
-        }
+    /* Убираем обводку на фокусе (тапе/клике) */
+    #coin-container:focus { outline: none; }
+    #coin-container:focus-visible { outline: none; box-shadow: none; }
 
-        /* Навигация между секциями */
-        .nav-bar {
-            display: flex;
-            gap: 12px;
-            margin: 0 0 16px 0; /* чуть выше shop/inventory чтобы не касались кнопок */
-        }
-        .nav-btn {
-            padding: 10px 14px;
-            background: rgba(78, 204, 163, 0.25);
-            color: white;
-            border: 1px solid rgba(78,204,163,0.6);
-            border-radius: 10px;
-            cursor: pointer;
-        }
+    /* Навигация между секциями */
+    .nav-bar {
+      display: flex;
+      gap: 12px;
+      margin: 0 0 16px 0;
+      align-items: center;
+    }
+    .nav-btn {
+      padding: 10px 14px;
+      background: rgba(78, 204, 163, 0.25);
+      color: white;
+      border: 1px solid rgba(78,204,163,0.6);
+      border-radius: 10px;
+      cursor: pointer;
+    }
 
-        /* Магазин и Инвентарь */
-        #shop, #inventory-panel {
-            margin-top: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 320px;
-            backdrop-filter: blur(10px);
-        }
+    /* Магазин и Инвентарь */
+    #shop, #inventory-panel {
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: 320px;
+      backdrop-filter: blur(10px);
+    }
 
-        .item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px;
-            border-radius: 12px;
-            background: rgba(0,0,0,0.15);
-            margin: 6px 0;
-        }
+    .item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.15);
+      margin: 6px 0;
+    }
 
-        .item-name {
-            font-weight: bold;
-        }
+    .item-name {
+      font-weight: bold;
+    }
 
-        .upgrade-btn {
-            padding: 10px 12px;
-            background: #4ecca3;
-            border: none;
-            border-radius: 8px;
-            color: #1a1a2e;
-            font-weight: bold;
-            cursor: pointer;
-        }
+    .upgrade-btn {
+      padding: 10px 12px;
+      background: #4ecca3;
+      border: none;
+      border-radius: 8px;
+      color: #1a1a2e;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-        .upgrade-btn:disabled {
-            background: #34495e;
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+    .upgrade-btn:disabled {
+      background: #34495e;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
 
-        .info { font-size: 0.8rem; margin-top: 6px; opacity: 0.6; text-align: center; }
+    .info { font-size: 0.8rem; margin-top: 6px; opacity: 0.6; text-align: center; }
 
-        /* Всплывающие цифры */
-        .plus-one {
-            position: absolute;
-            color: #4ecca3;
-            font-weight: bold;
-            font-size: 28px;
-            pointer-events: none;
-            animation: float-up 0.8s ease-out forwards;
-            z-index: 100;
-        }
+    /* Всплывающие цифры */
+    .plus-one {
+      position: absolute;
+      color: #4ecca3;
+      font-weight: bold;
+      font-size: 28px;
+      pointer-events: none;
+      animation: float-up 0.8s ease-out forwards;
+      z-index: 100;
+    }
 
-        @keyframes float-up {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-120px); }
-        }
+    @keyframes float-up {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-120px); }
+    }
 
-        /* Заголовок магазина с крестиком */
-        .shop-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .close-shop {
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-        }
+    /* Заголовок магазина с крестиком */
+    .shop-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .close-shop {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+    }
 
-        /* Инвентарь заголовок/листинг */
-        #inventory-panel h3 {
-            margin: 0 0 6px 0;
-        }
+    /* Инвентарь заголовок/листинг */
+    #inventory-panel h3 { margin: 0 0 6px 0; }
 
-        /* Локальные пути к изображениям можно заменить на URL, если нужно */
-        .item-img {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            vertical-align: middle;
-        }
-    </style>
+    /* Локальные пути к изображениям можно заменить на URL, если нужно */
+    .item-img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      vertical-align: middle;
+    }
+  </style>
 </head>
 <body>
 
-    <div id="ui">
-        <div style="opacity: 0.7;">Баланс Ioncoin</div>
-        <div class="balance-value" id="balance">0</div>
-        <div style="font-size: 0.9rem; color: #4ecca3;">
-            Сила тапа: <span id="click-power">1</span> • Множитель: x<span id="multiplier-value">1</span>
-        </div>
+  <div id="ui">
+    <div style="opacity: 0.7;">Баланс Ioncoin</div>
+    <div class="balance-value" id="balance">0</div>
+    <div style="font-size: 0.9rem; color: #4ecca3;">
+      Сила тапа: <span id="click-power">1</span> • Множитель: x<span id="multiplier-value">1</span>
+    </div>
+  </div>
+
+  <div class="nav-bar">
+    <button id="btn-shop" class="nav-btn">Магазин</button>
+    <button id="btn-inventory" class="nav-btn">Инвентарь</button>
+  </div>
+
+  <!-- Кнопка монеты (PNG без фона) -->
+  <div id="coin-container" class="coin-btn" role="button" tabindex="0" aria-label="Заработать IonCoin">
+    <!-- Вставьте путь к PNG монеты без фона:
+         Пример: images/coin-purple.png -->
+    <img src="images/coin-purple.png" id="coin-image" alt="IonCoin" />
+    <!-- ВНИМАНИЕ: замените выше src на путь к вашему PNG монеты, если нужно -->
+  </div>
+
+  <!-- Магазин (скрывается/показывается целиком) -->
+  <div id="shop" style="display:none;">
+    <div class="shop-header">
+      <strong>Магазин</strong>
+      <button id="close-shop" class="close-shop" aria-label="Закрыть магазин">✖</button>
     </div>
 
-    <div class="nav-bar">
-        <button id="btn-shop" class="nav-btn">Магазин</button>
-        <button id="btn-inventory" class="nav-btn">Инвентарь</button>
+    <!-- Lamborghini (изображение в магазине) -->
+    <div class="item" id="item-lambo" style="display:flex; align-items:center; gap:12px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <!-- Вставьте путь к PNG Lamborghini:
+             Пример: images/lambo.png -->
+        <img src="images/lambo.png" alt="Lamborghini" class="item-img" style="width:40px; height:40px;">
+        <span class="item-name" style="font-size:1rem;">Lamborghini</span>
+      </div>
+      <div>
+        <div class="info" style="margin:0 0 6px 0;">Цена: 100000 IonCoin</div>
+        <button id="buy-lambo" class="upgrade-btn">Купить Lamborghini</button>
+      </div>
     </div>
 
-    <div id="coin-container">
-        <img src="photo_5289875249144993768_y.jpg" id="coin-image" alt="Ioncoin">
+    <!-- Бустр boost в виде картинки -->
+    <div class="item" id="item-x2" style="display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <!-- Вставьте путь к PNG удвоения клика:
+             Пример: images/x2.png -->
+        <img src="images/x2.png" alt="Удвоение клика" class="item-img" style="width:40px; height:40px;">
+        <span class="item-name" style="font-size:1rem;">Удвоение клика</span>
+      </div>
+      <div>
+        <div class="info" style="margin:0 0 6px 0;">Цена: 500 IonCoin</div>
+        <button id="buy-x2" class="upgrade-btn">Купить</button>
+      </div>
     </div>
 
-    <!-- Магазин (скрывается/показывается целиком, в нём будет Ламборгини и бусты) -->
-    <div id="shop" style="display:none;">
-        <div class="shop-header">
-            <strong>Магазин</strong>
-            <button id="close-shop" class="close-shop" aria-label="Закрыть магазин">✖</button>
-        </div>
-
-        <!-- Lamborghini (изображение в магазине) -->
-        <div class="item" id="item-lambo" style="display:flex; align-items:center; gap:12px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-                <img src="images/lambo.png" alt="Lamborghini" class="item-img" style="width:40px; height:40px;">
-                <span class="item-name" style="font-size:1rem;">Lamborghini</span>
-            </div>
-            <div>
-                <div class="info" style="margin:0 0 6px 0;">Цена: 100000 IonCoin</div>
-                <button id="buy-lambo" class="upgrade-btn">Купить Lamborghini</button>
-            </div>
-        </div>
-
-        <!-- Бустр boost в виде картинки -->
-        <div class="item" id="item-x2" style="display:flex; align-items:center; justify-content:space-between;">
-            <div style="display:flex; align-items:center; gap:8px;">
-                <img src="images/x2.png" alt="Удвоение клика" class="item-img" style="width:40px; height:40px;">
-                <span class="item-name" style="font-size:1rem;">Удвоение клика</span>
-            </div>
-            <div>
-                <div class="info" style="margin:0 0 6px 0;">Цена: 500 IonCoin</div>
-                <button id="buy-x2" class="upgrade-btn">Купить</button>
-            </div>
-        </div>
-
-        <div class="info" style="margin-top:10px;">
-            Инвентарь обновится после покупки.
-        </div>
+    <div class="info" style="margin-top:10px;">
+      Инвентарь обновится после покупки.
     </div>
+  </div>
 
-    <!-- Инвентарь -->
-    <div id="inventory-panel" style="display:none;">
-        <div class="shop-header" style="margin-bottom:8px;">
-            <strong>Инвентарь</strong>
-        </div>
-        <div id="inventory-list" class="info" style="text-align:left; min-height:20px;">
-            Инвентарь пуст.
-        </div>
+  <!-- Инвентарь -->
+  <div id="inventory-panel" style="display:none;">
+    <div class="shop-header" style="margin-bottom:8px;">
+      <strong>Инвентарь</strong>
     </div>
+    <div id="inventory-list" class="info" style="text-align:left; min-height:20px;">
+      Инвентарь пуст.
+    </div>
+  </div>
 
-    <script>
-        // Элементы
-        const balanceEl = document.getElementById('balance');
-        const clickPowerEl = document.getElementById('click-power');
-        const multiplierEl = document.getElementById('multiplier-value');
-        const btnShop = document.getElementById('btn-shop');
-        const btnInventory = document.getElementById('btn-inventory');
-        const shopPanel = document.getElementById('shop');
-        const inventoryPanel = document.getElementById('inventory-panel');
-        const inventoryListEl = document.getElementById('inventory-list');
-        const closeShopBtn = document.getElementById('close-shop');
-        const buyLamboBtn = document.getElementById('buy-lambo');
-        const buyX2Btn = document.getElementById('buy-x2');
-        const itemLambo = document.getElementById('item-lambo');
-        const coinContainer = document.getElementById('coin-container');
-        const image = document.getElementById('coin-image');
+  <script>
+    // Элементы
+    const balanceEl = document.getElementById('balance');
+    const clickPowerEl = document.getElementById('click-power');
+    const multiplierEl = document.getElementById('multiplier-value');
+    const btnShop = document.getElementById('btn-shop');
+    const btnInventory = document.getElementById('btn-inventory');
+    const shopPanel = document.getElementById('shop');
+    const inventoryPanel = document.getElementById('inventory-panel');
+    const inventoryListEl = document.getElementById('inventory-list');
+    const closeShopBtn = document.getElementById('close-shop');
+    const buyLamboBtn = document.getElementById('buy-lambo');
+    const buyX2Btn = document.getElementById('buy-x2');
+    const itemLambo = document.getElementById('item-lambo');
+    const coinContainer = document.getElementById('coin-container');
+    const coinImage = document.getElementById('coin-image');
 
-        // Базовые параметры
-        let balance = parseInt(localStorage.getItem('ion_balance')) || 0;
-        let clickPower = parseInt(localStorage.getItem('ion_power')) || 1;
-        let clickMultiplier = parseInt(localStorage.getItem('ion_multiplier')) || 1;
-        let inventory = JSON.parse(localStorage.getItem('ion_inventory') || '[]');
-        // цены
-        const X2_PRICE = 500;
-        const LAMBO_PRICE = 100000;
+    // Базовые параметры
+    let balance = parseInt(localStorage.getItem('ion_balance')) || 0;
+    let clickPower = parseInt(localStorage.getItem('ion_power')) || 1;
+    let clickMultiplier = parseInt(localStorage.getItem('ion_multiplier')) || 1;
+    let inventory = JSON.parse(localStorage.getItem('ion_inventory') || '[]');
+    // Цены
+    const X2_PRICE = 500;
+    const LAMBO_PRICE = 100000;
 
-        // Рендер функций
-        function render() {
-            balanceEl.textContent = balance;
-            clickPowerEl.textContent = clickPower;
-            multiplierEl.textContent = clickMultiplier;
-            // доступность покупки
-            if (buyLamboBtn) buyLamboBtn.disabled = balance < LAMBO_PRICE || inventory.includes('lambo');
-            if (buyX2Btn) buyX2Btn.disabled = balance < X2_PRICE;
-            renderInventory();
-        }
+    // Рендер функций
+    function render() {
+      balanceEl.textContent = balance;
+      clickPowerEl.textContent = clickPower;
+      multiplierEl.textContent = clickMultiplier;
+      // доступность покупки
+      if (buyLamboBtn) buyLamboBtn.disabled = balance < LAMBO_PRICE || inventory.includes('lambo');
+      if (buyX2Btn) buyX2Btn.disabled = balance < X2_PRICE;
+      renderInventory();
+    }
 
-        function renderInventory() {
-            if (!inventoryListEl) return;
-            if (inventory.length === 0) {
-                inventoryListEl.textContent = 'Инвентарь пуст.';
-            } else {
-                inventoryListEl.innerHTML = inventory.map(it => {
-                    if (it === 'lambo') {
-                        return '<div style="display:flex; align-items:center; gap:6px;"><img src="images/lambo.png" alt="Lamborghini" style="width:20px; height:20px; object-fit:cover;"> Lamborghini</div>';
-                    }
-                    if (it === 'x2') {
-                        return '<div style="display:flex; align-items:center; gap:6px;"><img src="images/x2.png" alt="Удвоение клика" style="width:20px; height:20px; object-fit:cover;"> Удвоение клика</div>';
-                    }
-                    return XXXINLINECODEXXX0XXXINLINECODEXXX;
-                }).map(name => XXXINLINECODEXXX1XXXINLINECODEXXX).join('');
-            }
-        }
+    function renderInventory() {
+      if (!inventoryListEl) return;
+      if (inventory.length === 0) {
+        inventoryListEl.textContent = 'Инвентарь пуст.';
+      } else {
+        inventoryListEl.innerHTML = inventory.map(it => {
+          if (it === 'lambo') {
+            return '<div style="display:flex; align-items:center; gap:6px;"><img src="images/lambo.png" alt="Lamborghini" style="width:20px; height:20px; object-fit:cover;"> Lamborghini</div>';
+          }
+          if (it === 'x2') {
+            return '<div style="display:flex; align-items:center; gap:6px;"><img src="images/x2.png" alt="Удвоение клика" style="width:20px; height:20px; object-fit:cover;"> Удвоение клика</div>';
+          }
+          return XXXINLINECODEXXX0XXXINLINECODEXXX;
+        }).map(name => XXXINLINECODEXXX1XXXINLINECODEXXX).join('');
+      }
+    }
 
-        function saveState() {
-            localStorage.setItem('ion_balance', balance);
-            localStorage.setItem('ion_power', clickPower);
-            localStorage.setItem('ion_multiplier', clickMultiplier);
-            localStorage.setItem('ion_inventory', JSON.stringify(inventory));
-        }
+    function saveState() {
+      localStorage.setItem('ion_balance', balance);
+      localStorage.setItem('ion_power', clickPower);
+      localStorage.setItem('ion_multiplier', clickMultiplier);
+      localStorage.setItem('ion_inventory', JSON.stringify(inventory));
+    }
 
-        // Управление магазином
-        btnShop.addEventListener('click', () => {
-            shopPanel.style.display = 'block';
-            inventoryPanel.style.display = 'none';
-        });
+    // Управление магазином
+    btnShop.addEventListener('click', () => {
+      shopPanel.style.display = 'block';
+      inventoryPanel.style.display = 'none';
+    });
 
-        closeShopBtn.addEventListener('click', () => {
-            shopPanel.style.display = 'none';
-        });
+    closeShopBtn.addEventListener('click', () => {
+      shopPanel.style.display = 'none';
+    });
 
-        btnInventory.addEventListener('click', () => {
-            inventoryPanel.style.display = 'block';
-            shopPanel.style.display = 'none';
-        });
+    btnInventory.addEventListener('click', () => {
+      inventoryPanel.style.display = 'block';
+      shopPanel.style.display = 'none';
+    });
 
-        // Покупка Lamborghini
-        buyLamboBtn?.addEventListener('click', () => {
-            if (inventory.includes('lambo')) {
-                alert('У вас уже есть Lamborghini.');
-                return;
-            }
-            if (balance >= LAMBO_PRICE) {
-                balance -= LAMBO_PRICE;
-                inventory.push('lambo');
-                saveState();
-                render();
-            } else {
-                alert('Недостаточно IonCoin.');
-            }
-        });
+    // Покупка Lamborghini
+    buyLamboBtn?.addEventListener('click', () => {
+      if (inventory.includes('lambo')) {
+        alert('У вас уже есть Lamborghini.');
+        return;
+      }
+      if (balance >= LAMBO_PRICE) {
+        balance -= LAMBO_PRICE;
+        inventory.push('lambo');
+        saveState();
+        render();
+      } else {
+        alert('Недостаточно IonCoin.');
+      }
+    });
 
-        // Покупка буста x2 (предусмотрено как фото в магазине)
-        buyX2Btn?.addEventListener('click', () => {
-            if (inventory.includes('x2')) {
-                alert('У вас уже активирован удвоитель клика.');
-                return;
-            }
-            if (balance >= X2_PRICE) {
-                balance -= X2_PRICE;
-                inventory.push('x2');
-                clickMultiplier *= 2; // удвоение клика
-                saveState();
-                render();
-            } else {
-                alert('Недостаточно IonCoin.');
-            }
-        });
+    // Покупка буста x2
+    buyX2Btn?.addEventListener('click', () => {
+      if (inventory.includes('x2')) {
+        alert('У вас уже активирован удвоитель клика.');
+        return;
+      }
+      if (balance >= X2_PRICE) {
+        balance -= X2_PRICE;
+        inventory.push('x2');
+        clickMultiplier *= 2; // удвоение клика
+        saveState();
+        render();
+      } else {
+        alert('Недостаточно IonCoin.');
+      }
+    });
 
-        // Кликом по монете зарабатываем IonCoin
-        coinContainer.addEventListener('click', () => {
-            // gain = base power * multiplier
-            const gain = Math.max(1, Math.floor(clickPower * clickMultiplier));
-            balance += gain;
-            // всплывашка
-            const el = document.createElement('span');
-            el.className = 'plus-one';
-            el.textContent = '+' + gain;
-            coinContainer.appendChild(el);
-            setTimeout(() => el.remove(), 800);
+    // Кликом по монете зарабатываем IonCoin
+    // Убираем видимую обводку при тапе
+    coinContainer.addEventListener('click', () => {
+      // gain = base power * multiplier
+      const gain = Math.max(1, Math.floor(clickPower * clickMultiplier));
+      balance += gain;
+      // всплывашка
+      const el = document.createElement('span');
+      el.className = 'plus-one';
+      el.textContent = '+' + gain;
+      coinContainer.appendChild(el);
+      setTimeout(() => el.remove(), 800);
 
-            saveState();
-            render();
-        });
+      saveState();
+      render();
 
-        // Инициализация
-        document.addEventListener('DOMContentLoaded', () => {
-            render();
-        });
+      // снимем фокус после клика, чтобы не было видимой обводки
+      if (typeof coinContainer.blur === 'function') coinContainer.blur();
+    });
 
-        // Закрытие магазина по Escape (удобно)
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && shopPanel.style.display === 'block') {
-                shopPanel.style.display = 'none';
-            }
-        });
-    </script>
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', () => {
+      render();
+    });
+
+    // Закрытие магазина по Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && shopPanel.style.display === 'block') {
+        shopPanel.style.display = 'none';
+      }
+    });
+  </script>
 </body>
 </html>
