@@ -184,6 +184,24 @@
                 el.remove();
             }, 800);
         }
-    </script>
+    </script>// Сохранение баланса
+function saveGame() {
+    localStorage.setItem('ion_balance', balance);
+    localStorage.setItem('ion_power', clickPower);
+}
+
+// Загрузка баланса при старте
+window.onload = function() {
+    if(localStorage.getItem('ion_balance')) {
+        balance = parseInt(localStorage.getItem('ion_balance'));
+        clickPower = parseInt(localStorage.getItem('ion_power'));
+        updateUI();
+    }
+}
+
+// И не забудь вызывать saveGame() внутри функции клика!
+
+
 </body>
+
 </html>
