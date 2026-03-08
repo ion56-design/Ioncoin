@@ -55,28 +55,54 @@
             filter: drop-shadow(0 0 20px rgba(78, 204, 163, 0.3));
         }
 
-        /* Магазин */
-        #shop {
-            margin-top: 30px;
+        /* Навигация между секциями */
+        .nav-bar {
+            display: flex;
+            gap: 12px;
+            margin: 12px 0 0;
+        }
+        .nav-btn {
+            padding: 10px 14px;
+            background: rgba(78, 204, 163, 0.25);
+            color: white;
+            border: 1px solid rgba(78,204,163,0.6);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        /* Магазин и Инвентарь */
+        #shop, #inventory-panel {
+            margin-top: 20px;
             background: rgba(255, 255, 255, 0.05);
             padding: 20px;
             border-radius: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 280px;
+            width: 320px;
             backdrop-filter: blur(10px);
         }
 
+        .item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.15);
+            margin: 6px 0;
+        }
+
+        .item-name {
+            font-weight: bold;
+        }
+
         .upgrade-btn {
-            width: 100%;
-            padding: 15px;
+            padding: 10px 12px;
             background: #4ecca3;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             color: #1a1a2e;
-            font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
         }
 
         .upgrade-btn:disabled {
@@ -84,7 +110,8 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
-                .info { font-size: 0.8rem; margin-top: 10px; opacity: 0.6; text-align: center; }
+
+        .info { font-size: 0.8rem; margin-top: 6px; opacity: 0.6; text-align: center; }
 
         /* Всплывающие цифры */
         .plus-one {
@@ -111,80 +138,131 @@
         <div style="font-size: 0.9rem; color: #4ecca3;">Сила тапа: <span id="click-power">1</span></div>
     </div>
 
+    <div class="nav-bar">
+        <button id="btn-shop" class="nav-btn">Магазин</button>
+        <button id="btn-inventory" class="nav-btn">Инвентарь</button>
+    </div>
+
     <div id="coin-container">
         <!-- ЗАМЕНИ 'coin.png' НА НАЗВАНИЕ СВОЕГО ФАЙЛА -->
         <img src="photo_5289875249144993768_y.jpg" id="coin-image" alt="Ioncoin">
     </div>
 
+    <!-- Магазин -->
     <div id="shop">
-        <button id="upgrade-btn" class="upgrade-btn" disabled>УЛУЧШИТЬ ТАП</button>
-        <div id="upgrade-info" class="info">Цена: 100 I</div>
+        <div class="item" id="item-lambo">
+            <div>
+                <span class="item-name">🚗 Lamborghini</span><br>
+                <span class="info" style="margin:0; display:block;">Цена: 100000 IonCoin</span>
+            </div>
+            <button id="buy-lambo" class="upgrade-btn">Купить Lamborghini</button>
+        </div>
+
+        <!-- Можно оставить существующие элементы магазина или они могут быть удалены -->
+        <div class="info" style="margin-top:10px;">
+            В магазине можно купить Lamborghini за 100000 IonCoin. Инвентарь обновится после покупки.
+        </div>
+    </div>
+
+    <!-- Инвентарь -->
+    <div id="inventory-panel" style="display:none;">
+        <h3 style="margin-top:0;">Инвентарь</h3>
+        <div id="inventory-list" class="info" style="text-align:left; min-height:20px;">
+            Инвентарь пуст.
+        </div>
     </div>
 
     <script>
         // Инициализация данных (загрузка из памяти или дефолт)
-        let balance = parseFloat(localStorage.getItem('ion_balance')) || 0;
+        let balance = parseInt(localStorage.getItem('ion_balance')) || 0;
         let clickPower = parseInt(localStorage.getItem('ion_power')) || 1;
-        let upgradeCost = parseInt(localStorage.getItem('ion_cost')) || 100;
+        let inventory = JSON.parse(localStorage.getItem('ion_inventory') || '[]');
 
+        // Элементы на странице
         const balanceEl = document.getElementById('balance');
         const clickPowerEl = document.getElementById('click-power');
-        const upgradeBtn = document.getElementById('upgrade-btn');
-        const upgradeInfo = document.getElementById('upgrade-info');
         const coinContainer = document.getElementById('coin-container');
+        const buyLamboBtn = document.getElementById('buy-lambo');
+        const inventoryPanel = document.getElementById('inventory-panel');
+        const shopPanel = document.getElementById('shop');
+        const inventoryListEl = document.getElementById('inventory-list');
+        const btnShop = document.getElementById('btn-shop');
+        const btnInventory = document.getElementById('btn-inventory');
 
-        // Обновляем экран при запуске
-        updateUI();
+        function renderBalance() {
+            balanceEl.textContent = balance;
+            // включение/выключение кнопки покупки в зависимости от баланса
+            if (buyLamboBtn) {
+                buyLamboBtn.disabled = balance < 100000;
+            }
+        }
 
-        // КЛИК
-        coinContainer.addEventListener('pointerdown', (e) => {
-            balance += clickPower;
-            createPlusNumber(e.clientX, e.clientY);
-            saveData();
-            updateUI();
+        function renderInventory() {
+            if (!inventoryListEl) return;
+            if (inventory.length === 0) {
+                inventoryListEl.textContent = 'Инвентарь пуст.';
+            } else {
+                inventoryListEl.innerHTML = inventory.map(it => {
+                    if (it === 'lambo') return '🚗 Lamborghini';
+                    return it;
+                }).map(name => XXXINLINECODEXXX0XXXINLINECODEXXX).join('');
+            }
+        }
+
+        function showSection(name) {
+            if (name === 'shop') {
+                shopPanel.style.display = 'block';
+                inventoryPanel.style.display = 'none';
+            } else {
+                shopPanel.style.display = 'none';
+                inventoryPanel.style.display = 'block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // инициализация отображения
+            renderBalance();
+            renderInventory();
+            showSection('shop');
         });
 
-        // ПОКУПКА АПГРЕЙДА
-        upgradeBtn.addEventListener('click', () => {
-            if (balance >= upgradeCost) {
-                balance -= upgradeCost;
-                clickPower += 1; // Увеличиваем силу на 1
-                upgradeCost = Math.round(upgradeCost * 1.8); // Цена растет
-                saveData();
-                updateUI();
+        // клик по монетке — зарабатываем монеты
+        coinContainer.addEventListener('click', () => {
+            balance += clickPower;
+            localStorage.setItem('ion_balance', balance);
+            renderBalance();
+            // простая всплывашка
+            const el = document.createElement('span');
+            el.className = 'plus-one';
+            el.textContent = '+' + clickPower;
+            coinContainer.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        });
+
+        // покупка Lamborghini
+        buyLamboBtn && buyLamboBtn.addEventListener('click', () => {
+            const price = 100000;
+            if (inventory.includes('lambo')) {
+                alert('У вас уже есть Lamborghini.');
+                return;
+            }
+            if (balance >= price) {
+                balance -= price;
+                inventory.push('lambo');
+                localStorage.setItem('ion_balance', balance);
+                localStorage.setItem('ion_inventory', JSON.stringify(inventory));
+                renderBalance();
+                renderInventory();
+                alert('Покупка выполнена: Lamborghini добавлена в инвентарь.');
+                buyLamboBtn.disabled = true;
+            } else {
+                alert('Недостаточно IonCoin.');
             }
         });
 
-        // СОХРАНЕНИЕ
-        function saveData() {
-            localStorage.setItem('ion_balance', balance);
-            localStorage.setItem('ion_power', clickPower);
-            localStorage.setItem('ion_cost', upgradeCost);
-        }
-
-        function updateUI() {
-            balanceEl.innerText = Math.floor(balance).toLocaleString();
-            clickPowerEl.innerText = clickPower;
-            upgradeInfo.innerText = `Цена улучшения: ${upgradeCost.toLocaleString()} I`;
-            upgradeBtn.disabled = balance < upgradeCost;
-        }
-
-        function createPlusNumber(x, y) {
-            const el = document.createElement('div');
-            el.className = 'plus-one';
-            el.innerText = `+${clickPower}`;
-            el.style.left = `${x - 15}px`;
-            el.style.top = `${y - 30}px`;
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 800);
-        }
+        // навигация
+        btnShop.addEventListener('click', () => showSection('shop'));
+        btnInventory.addEventListener('click', () => showSection('inventory'));
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
