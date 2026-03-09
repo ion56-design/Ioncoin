@@ -45,17 +45,17 @@
       100%{transform: translate3d(0,0,0)}
     }
 
-    /* интерфейс (поверх фона) - РАСШИРЕН */
+    /* интерфейс (поверх фона) */
     #app { position:relative; z-index:2; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; box-sizing:border-box; }
-    .panel { width:450px; max-width:96vw; background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.04); border-radius:14px; padding:14px; backdrop-filter: blur(4px); box-shadow: 0 6px 24px rgba(0,0,0,0.45); }
+    .panel { width:360px; max-width:96vw; background: rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.04); border-radius:14px; padding:14px; backdrop-filter: blur(4px); box-shadow: 0 6px 24px rgba(0,0,0,0.45); }
     #ui { text-align:center; margin-bottom:14px; }
     .balance-row { display:inline-flex; align-items:baseline; gap:8px; justify-content:center; }
-    .balance-value { font-size:3.2rem; font-weight:800; color:#dfffcf; text-shadow:0 6px 26px rgba(0,0,0,0.6); }
+    .balance-value { font-size:2.8rem; font-weight:800; color:#dfffcf; text-shadow:0 6px 26px rgba(0,0,0,0.6); }
     /* золотая буква I рядом с общим балансом */
     .balance-letter {
       font-weight:900;
       color:#FFD700;
-      font-size:1.2rem;
+      font-size:1.05rem;
       margin-left:8px;
       padding:4px 7px;
       border-radius:6px;
@@ -66,14 +66,15 @@
       justify-content:center;
     }
 
-    #coin-container { margin:16px auto 6px; width:150px; height:150px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); box-shadow: 0 10px 28px rgba(0,0,0,0.55); transition:transform .08s; }
+    #coin-container { margin:16px auto 6px; width:130px; height:130px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); box-shadow: 0 10px 28px rgba(0,0,0,0.55); transition:transform .08s; }
     #coin-container:active{ transform:scale(.96); }
     #coin-container img{ width:86%; height:86%; object-fit:contain; pointer-events:none; }
 
     .nav { display:flex; gap:10px; justify-content:center; margin-bottom:10px; }
     .nav button { padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.02); color:#eafef0; cursor:pointer; }
+
     /* магазин */
-    .shop { margin-top:12px; display:none; width:450px; max-width:96vw; }
+    .shop { margin-top:12px; display:none; width:360px; max-width:96vw; }
     .section { margin-bottom:10px; }
     .section-title { font-weight:800; margin:6px 0; display:flex; align-items:center; justify-content:space-between; gap:8px; }
     .section-sub { font-size:0.82rem; opacity:.85; color:#d7ffe8; }
@@ -104,7 +105,7 @@
     .bar-fill-cool { height:100%; width:0%; background:linear-gradient(90deg,#7aa7ff,#4e92ff); transition:width .2s linear; }
 
     /* адаптив */
-    @media (max-width:420px){ .panel{width:94vw;padding:12px;} #coin-container{width:130px;height:130px;} .balance-value{font-size:2.8rem;} }
+    @media (max-width:420px){ .panel{width:94vw;padding:12px;} #coin-container{width:110px;height:110px;} .balance-value{font-size:2.2rem;} }
   </style>
 </head>
 <body>
@@ -120,11 +121,6 @@
         <div id="balance" class="balance-value">0</div>
         <div id="balance-letter" class="balance-letter">I</div>
       </div>
-      
-      <!-- ТАЙМЕР НА ГЛАВНОМ ЭКРАНЕ (скопирован из магазина) -->
-      <div id="main-hyper-status" class="info" style="margin-top:8px;"></div>
-      <div class="bar-wrap" style="margin-top:4px; margin-bottom:4px;"><div id="main-hyper-bar" class="bar-fill"></div></div>
-      
       <div style="font-size:.92rem;color:#bfffd9;margin-top:6px;">Сила тапа: <span id="click-power">1</span> • Множитель: x<span id="multiplier-value">1</span></div>
     </div>
 
@@ -142,6 +138,7 @@
         <strong>Магазин</strong>
         <button id="close-shop" class="btn" style="background:transparent;border:0;color:#fff;font-weight:700;">✖</button>
       </div>
+
       <div class="section" id="section-boosts">
         <div class="section-title">
           <div>Бусты</div>
@@ -208,7 +205,7 @@
       <div class="info" style="margin-top:10px;">Инвентарь обновится после покупки.</div>
     </div>
 
-    <div id="inventory-panel" class="panel" style="display:none; margin-top:12px; max-width:450px; width:96vw;">
+    <div id="inventory-panel" class="panel" style="display:none; margin-top:12px; max-width:360px; width:96vw;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><strong>Инвентарь</strong></div>
       <div id="inventory-list" class="info" style="text-align:left;min-height:36px;">Инвентарь пуст.</div>
     </div>
@@ -235,10 +232,6 @@
     const hyperBarEl = document.getElementById('hyper-bar');
     const hyperPriceEl = document.getElementById('hyper-price');
     const buyLamboBtn = document.getElementById('buy-lambo');
-    
-    // Элементы таймера на главном
-    const mainHyperStatus = document.getElementById('main-hyper-status');
-    const mainHyperBar = document.getElementById('main-hyper-bar');
 
     // Константы
     const X2_BASE_PRICE = 500;
@@ -256,11 +249,11 @@
     let hyperExpires = parseInt(localStorage.getItem('ion_hyper_expires')) || 0;
     let hyperLastBuy = parseInt(localStorage.getItem('ion_hyper_last_buy')) || 0;
 
-    // Отложенное сохранение
+    // Отложенное сохранение (чтобы не вызывать localStorage часто)
     let saveTimer = null;
     function scheduleSave() {
       if (saveTimer) clearTimeout(saveTimer);
-      saveTimer = setTimeout(saveState, 600);
+      saveTimer = setTimeout(saveState, 600); // сохраняем через 600ms после последнего изменения
     }
     function saveState() {
       localStorage.setItem('ion_balance', String(balance));
@@ -282,7 +275,7 @@
       return mm+':'+ss;
     }
 
-    // Создаём кнопку x2 / Max
+    // Создаём кнопку x2 / Max один раз (оптимизация DOM)
     const buyX2Btn = document.createElement('button');
     buyX2Btn.className = 'btn';
     buyX2Btn.textContent = 'Купить';
@@ -291,8 +284,8 @@
     x2MaxSpan.textContent = 'Max Level';
     x2Action.appendChild(buyX2Btn);
 
-    // Рендер
-    function renderUI() {
+    // Рендер (минимум DOM-операций)
+    function renderUI(now) {
       // баланс
       balanceEl.textContent = String(balance);
       clickPowerEl.textContent = String(clickPower);
@@ -317,22 +310,18 @@
       const hyperActive = hyperExpires > nowTime;
       const cooldownLeft = Math.max(0, (hyperLastBuy + HYPER_COOLDOWN_MS) - nowTime);
 
-      // Обновляем статус в магазине
       if (hyperActive) {
         buyHyperBtn.disabled = true;
         hyperStatusEl.textContent = 'Гиперклик: АКТИВЕН — осталось ' + formatTime(hyperExpires - nowTime);
-        mainHyperStatus.textContent = 'Гиперклик: АКТИВЕН — осталось ' + formatTime(hyperExpires - nowTime);
       } else if (cooldownLeft > 0) {
         buyHyperBtn.disabled = true;
         hyperStatusEl.textContent = 'Перезарядка: ' + formatTime(cooldownLeft);
-        mainHyperStatus.textContent = 'Перезарядка: ' + formatTime(cooldownLeft);
       } else {
         buyHyperBtn.disabled = balance < HYPER_PRICE;
         hyperStatusEl.textContent = buyHyperBtn.disabled ? 'Гиперклик: готов (недостаточно средств)' : 'Гиперклик: готов к активации';
-        mainHyperStatus.textContent = ''; // Очищаем текст когда не активен
       }
 
-      // прогресс-бар в магазине
+      // прогресс-бар (обновляем width)
       if (hyperActive) {
         const remaining = Math.max(0, hyperExpires - nowTime);
         const pct = Math.max(0, Math.min(100, (remaining / HYPER_DURATION_MS) * 100));
@@ -346,25 +335,9 @@
       } else {
         hyperBarEl.style.width = '0%';
       }
-      
-      // прогресс-бар на главном
-      if (hyperActive) {
-        const remaining = Math.max(0, hyperExpires - nowTime);
-        const pct = Math.max(0, Math.min(100, (remaining / HYPER_DURATION_MS) * 100));
-        mainHyperBar.style.width = pct + '%';
-        mainHyperBar.className = 'bar-fill';
-      } else if (cooldownLeft > 0) {
-        const elapsed = Math.max(0, HYPER_COOLDOWN_MS - cooldownLeft);
-        const pct = Math.max(0, Math.min(100, (elapsed / HYPER_COOLDOWN_MS) * 100));
-        mainHyperBar.style.width = pct + '%';
-        mainHyperBar.className = 'bar-fill-cool';
-      } else {
-        mainHyperBar.style.width = '0%';
-        mainHyperStatus.textContent = ''; // Очищаем текст когда не активен
-      }
     }
 
-    // Обновляем инвентарь
+    // Обновляем инвентарь (строка, минимум DOM операций)
     function renderInventory(){
       const now = Date.now();
       const hyperActive = hyperExpires > now;
@@ -372,12 +345,12 @@
 
       const parts = [];
       if (inventory.includes('lambo')) parts.push('<div style="display:flex;align-items:center;gap:6px;"><img src="photo_5292127048958677180_y.jpg" style="width:20px;height:20px;object-fit:cover;border-radius:4px;"> Lamborghini</div>');
-      if (x2Level>0) parts.push('<div>Множитель x' + Math.pow(2, x2Level) + ' (ур.' + x2Level + ')</div>');
-      if (hyperActive) parts.push('<div>⚡ Гиперклик (активен)</div>');
-      else if (cooldownLeft>0) parts.push('<div>⏳ Гиперклик (перезарядка)</div>');
-      else if (hyperLastBuy) parts.push('<div>🌀 Гиперклик (готов к покупке)</div>');
+      if (x2Level>0) parts.push(XXXINLINECODEXXX0XXXINLINECODEXXX);
+      if (hyperActive) parts.push(XXXINLINECODEXXX1XXXINLINECODEXXX);
+      else if (cooldownLeft>0) parts.push(XXXINLINECODEXXX2XXXINLINECODEXXX);
+      else parts.push('<div>Гиперклик: готов к покупке</div>');
 
-      inventoryList.innerHTML = parts.length ? parts.join('') : 'Инвентарь пуст.';
+      inventoryList.innerHTML = parts.length ? parts.map(p => XXXINLINECODEXXX3XXXINLINECODEXXX).join('') : 'Инвентарь пуст.';
     }
 
     // Покупки и клики
@@ -416,7 +389,7 @@
       renderInventory();
     });
 
-    // Клик по монете
+    // Клик по монете - создаём маленький плюс (без буквы I)
     coinContainer.addEventListener('click', () => {
       const hyperActive = hyperExpires > Date.now();
       const multiplier = Math.pow(2, x2Level);
@@ -424,10 +397,12 @@
       const gain = Math.max(1, Math.floor(clickPower * multiplier * hyperFactor));
       balance += gain;
 
+      // небольшой поп-эффект "+gain"
       const pop = document.createElement('div');
       pop.className = 'plus-one';
       pop.textContent = '+' + gain;
       document.body.appendChild(pop);
+      // удалить через ~900ms
       setTimeout(() => { pop.remove(); }, 900);
 
       scheduleSave();
@@ -439,12 +414,13 @@
     closeShop.addEventListener('click', ()=>{ shop.style.display='none'; });
     btnInv.addEventListener('click', ()=>{ inventoryPanel.style.display='block'; shop.style.display='none'; renderInventory(); });
 
-    // Обновление UI (оптимизировано)
+    // Обновление UI реже (оптимизация): используем requestAnimationFrame и обновляем не чаще чем каждые 300ms
     let lastTick = 0;
     function tick(ts){
       if (!lastTick) lastTick = ts;
       const delta = ts - lastTick;
       if (delta >= 300) {
+        // если истёк hyperExpires — сбрасываем и сохраняем (один раз)
         if (hyperExpires && hyperExpires <= Date.now()) {
           hyperExpires = 0;
           scheduleSave();
@@ -458,6 +434,7 @@
 
     // инициализация
     window.addEventListener('load', () => {
+      // корректируем истёкшие времена при старте
       if (hyperExpires && hyperExpires <= Date.now()) { hyperExpires = 0; }
       renderUI();
       renderInventory();
@@ -469,7 +446,7 @@
     // клавиша ESC закрывать магазин
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && shop.style.display === 'block') shop.style.display = 'none'; });
 
-    // Предустановки
+    // Предустановки: если при первом запуске x2-action пуст, вставим кнопку (на случай перезагрузки)
     if (!x2Action.contains(buyX2Btn) && !x2Action.contains(x2MaxSpan)) x2Action.appendChild(buyX2Btn);
   </script>
 </body>
