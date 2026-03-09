@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Ioncoin Clicker PRO</title>
   <style>
-    /* ---- базовый стиль и оптимизированный фон ---- */
+    /* ---- базовый стиль и оптимизированный фон (переливающийся градиент) ---- */
     html,body{height:100%;margin:0;font-family:Inter, "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial;}
     body{
       background: linear-gradient(120deg,#071020 0%, #081827 50%, #0b1522 100%);
@@ -15,13 +15,14 @@
       overflow:hidden;
     }
 
-    /* анимированный фон */
+    /* animated gradient layer (оптимизировано: без тяжелых blur) */
     .animated-bg {
       position:fixed; inset:0; z-index:0; pointer-events:none;
       background: linear-gradient(90deg, rgba(46,230,184,0.08), rgba(255,215,80,0.06), rgba(126,180,255,0.06), rgba(255,122,163,0.05));
       background-size: 300% 300%;
       animation: gradientShift 12s linear infinite;
       mix-blend-mode: screen;
+      filter: saturate(1.05);
     }
     @keyframes gradientShift {
       0%{background-position:0% 50%}
@@ -29,12 +30,13 @@
       100%{background-position:0% 50%}
     }
 
-    /* декоративные элементы */
+    /* простые декоративные "блоб"-слои без heavy blur */
     .blob { position: absolute; border-radius: 50%; pointer-events:none; opacity:0.12; z-index:0; }
-    .b1{ width:420px; height:420px; left:-60px; top:-40px; background:radial-gradient(circle at 30% 30%, #2ee6b8, transparent 50%); }
-    .b2{ width:520px; height:520px; right:-90px; top:10px; background:radial-gradient(circle at 70% 40%, #ffd76b, transparent 50%); }
-    .b3{ width:360px; height:360px; left:18%; bottom:-120px; background:radial-gradient(circle at 40% 60%, #7aa7ff, transparent 50%); }
-    .b1,.b2,.b3 { animation: blobMove 18s ease-in-out infinite; }
+    .b1{ width:420px; height:420px; left:-60px; top:-40px; background:radial-gradient(circle at 30% 30%, #2ee6b8, transparent 50%); transform:translateZ(0); }
+    .b2{ width:520px; height:520px; right:-90px; top:10px; background:radial-gradient(circle at 70% 40%, #ffd76b, transparent 50%); transform:translateZ(0); }
+    .b3{ width:360px; height:360px; left:18%; bottom:-120px; background:radial-gradient(circle at 40% 60%, #7aa7ff, transparent 50%); transform:translateZ(0); }
+    /* лёгкая анимация трансформаций (GPU friendly) */
+    .b1,.b2,.b3 { will-change: transform; animation: blobMove 18s ease-in-out infinite; }
     .b2{ animation-duration:22s; }
     .b3{ animation-duration:20s; }
     @keyframes blobMove {
@@ -80,7 +82,7 @@
       background: rgba(255,215,0,0.05);
     }
 
-    /* НОВЫЙ БЛОК - ТАЙМЕР КИБЕРКЛИКА НА ГЛАВНОМ */
+    /* БЛОК ТАЙМЕРА КИБЕРКЛИКА */
     .cyber-timer {
       background: rgba(0, 0, 0, 0.3);
       border-radius: 40px;
@@ -105,7 +107,6 @@
     .cyber-icon {
       font-size: 1.3rem;
     }
-
     #coin-container { 
       margin:20px auto 10px; 
       width:180px;
@@ -121,6 +122,7 @@
     }
     #coin-container:active{ transform:scale(.94); }
     #coin-container img{ width:86%; height:86%; object-fit:contain; }
+
     .nav { display:flex; gap:15px; justify-content:center; margin:15px 0; }
     .nav button { 
       padding:12px 20px;
@@ -166,6 +168,8 @@
       font-size:1rem;
     }
     .btn:disabled{ background:#34495e; opacity:.75; cursor:not-allowed; }
+
+    .x2-max { color:#FFD700; font-weight:900; background:rgba(255,215,0,0.06); padding:8px 12px; border-radius:8px; }
 
     /* Модальное окно */
     .modal-overlay {
@@ -233,10 +237,9 @@
     }
 
     /* прогресс-бары */
-    .bar-wrap { width:100%; height:15px; background:rgba(255,255,255,0.05); border-radius:10px; overflow:hidden; }
+    .bar-wrap { width:100%; height:15px; background:rgba(255,255,255,0.05); border-radius:8px; overflow:hidden; border:1px solid rgba(0,0,0,0.12); }
     .bar-fill { height:100%; width:0%; background:linear-gradient(90deg,#ffd76b,#e7a700); transition:width .2s linear; }
     .bar-fill-cool { height:100%; width:0%; background:linear-gradient(90deg,#7aa7ff,#4e92ff); transition:width .2s linear; }
-
     /* поп-ап числа */
     .plus-one {
       position:fixed; left:50%; transform:translateX(-50%); bottom:40%;
@@ -252,71 +255,73 @@
 
     @media (max-width:420px){ 
       #app { transform: scale(1); }
-      .panel{width:94vw;} 
+      .panel{width:94vw;padding:12px;} 
       #coin-container{width:150px;height:150px;} 
       .balance-value{font-size:3rem;} 
     }
   </style>
 </head>
 <body>
-  <div class="animated-bg"></div>
-  <div class="blob b1"></div>
-  <div class="blob b2"></div>
-  <div class="blob b3"></div>
+  <div class="animated-bg" aria-hidden="true"></div>
+  <div class="blob b1" aria-hidden="true"></div>
+  <div class="blob b2" aria-hidden="true"></div>
+  <div class="blob b3" aria-hidden="true"></div>
+
   <!-- Модальное окно для Ламборгини -->
   <div id="lamboModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-title">🏆 ПОЗДРАВЛЯЕМ! 🏆</div>
-      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23d83d3d'/%3E%3Ctext x='18' y='68' font-size='52' fill='gold' font-weight='bold'%3E🏎️%3C/text%3E%3C/svg%3E" class="modal-img" alt="Lamborghini">
+      <img src="photo_5292127048958677180_y.jpg" class="modal-img" alt="Lamborghini">
       <div style="font-size:1.4rem; margin:15px 0; color:#fff;">Вы купили Lamborghini!</div>
       <button class="modal-close" onclick="closeLamboModal()">ПРОДОЛЖИТЬ</button>
     </div>
   </div>
 
   <div id="app">
-    <div id="ui" class="panel">
-      <div style="opacity:.78; font-size:1.2rem;">Баланс Ioncoin</div>
-      <div class="balance-row">
+    <div id="ui" class="panel" style="text-align:center;">
+      <div style="opacity:.78;">Баланс Ioncoin</div>
+      <div class="balance-row" style="margin-top:8px;">
         <div id="balance" class="balance-value">0</div>
         <div id="balance-letter" class="balance-letter">I</div>
       </div>
       
-      <!-- НОВЫЙ БЛОК: Таймер Киберклика на главном экране -->
+      <!-- Таймер Киберклика на главном экране -->
       <div id="cyber-timer-main" class="cyber-timer">
         <span class="cyber-icon">⚡</span>
         <span id="cyber-timer-text">Киберклик: готов</span>
       </div>
       
-      <div style="font-size:1.1rem;color:#bfffd9;margin-top:8px;">
-        Сила тапа: <span id="click-power">1</span> • Множитель: x<span id="multiplier-value">1</span>
-      </div>
+      <div style="font-size:.92rem;color:#bfffd9;margin-top:6px;">Сила тапа: <span id="click-power">1</span> • Множитель: x<span id="multiplier-value">1</span></div>
     </div>
 
-    <div class="nav">
-      <button id="btn-shop">🛒 МАГАЗИН</button>
-      <button id="btn-inv">📦 ИНВЕНТАРЬ</button>
+    <div class="nav" style="margin-top:10px;">
+      <button id="btn-shop" class="btn" style="background:rgba(255,255,255,0.03);color:#e9fff3;border:1px solid rgba(255,255,255,0.04);">Магазин</button>
+      <button id="btn-inv" class="btn" style="background:rgba(255,255,255,0.03);color:#e9fff3;border:1px solid rgba(255,255,255,0.04);">Инвентарь</button>
     </div>
 
     <div id="coin-container" title="Нажми, чтобы заработать">
-      <img id="coin-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23f5e56b' stroke='%23ffb347' stroke-width='5'/%3E%3Ctext x='50' y='70' font-size='46' text-anchor='middle' fill='%23333' font-weight='bold'%3EI%3C/text%3E%3C/svg%3E" alt="IonCoin">
+      <img id="coin-image" src="photo_5289875249144993768_y.png" alt="IonCoin">
     </div>
 
-    <div id="shop" class="shop panel">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <strong style="font-size:1.5rem;">МАГАЗИН</strong>
-        <button id="close-shop" class="btn" style="background:transparent;border:0;color:#fff;font-weight:700;font-size:1.5rem;">✖</button>
+    <div id="shop" class="shop panel" aria-hidden="true">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <strong>Магазин</strong>
+        <button id="close-shop" class="btn" style="background:transparent;border:0;color:#fff;font-weight:700;">✖</button>
       </div>
 
-      <div class="section">
-        <div class="section-title" style="font-size:1.3rem;">🚀 Бусты</div>
+      <div class="section" id="section-boosts">
+        <div class="section-title">
+          <div>Бусты</div>
+          <div class="section-sub">— улучшения для клика</div>
+        </div>
 
         <!-- x2 -->
         <div class="item" id="item-x2">
           <div class="item-left">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%2340c4aa'/%3E%3Ctext x='50' y='70' font-size='48' text-anchor='middle' fill='white' font-weight='bold'%3E2x%3C/text%3E%3C/svg%3E" class="item-img" alt="x2">
+            <img src="photo_5292127048958677181_y.jpg" class="item-img" alt="x2">
             <div>
               <div class="item-name">Удвоение клика</div>
-              <div style="font-size:.9rem;">Макс покупок: 4</div>
+              <div style="font-size:.85rem;opacity:.85;">Макс покупок: 4</div>
             </div>
           </div>
           <div style="text-align:right;">
@@ -325,14 +330,14 @@
           </div>
         </div>
 
-        <!-- hyper клик -->
+        <!-- hyper -->
         <div class="item" id="item-hyper" style="flex-direction:column;align-items:stretch;">
           <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
             <div class="item-left">
-              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23f09b5a'/%3E%3Ctext x='50' y='70' font-size='40' text-anchor='middle' fill='white' font-weight='bold'%3E⚡%3C/text%3E%3C/svg%3E" class="item-img" alt="hyper">
+              <img src="photo_5292127048958677181_y.jpg" class="item-img" alt="hyper">
               <div>
                 <div class="item-name">Киберклик</div>
-                <div style="font-size:.9rem;">Даёт +100 IonCoin за клик (1 минута)</div>
+                <div style="font-size:.85rem;opacity:.85;">+100 IonCoin за клик (1 минута). Перезарядка — 5 минут.</div>
               </div>
             </div>
             <div style="text-align:right;">
@@ -342,16 +347,20 @@
           </div>
           <div style="margin-top:8px;">
             <div id="hyper-status" class="info">Состояние: готов</div>
-            <div class="bar-wrap"><div id="hyper-bar" class="bar-fill"></div></div>
+            <div class="bar-wrap" style="margin-top:6px;"><div id="hyper-bar" class="bar-fill"></div></div>
           </div>
         </div>
       </div>
 
-      <div class="section">
-        <div class="section-title" style="font-size:1.3rem;">💎 NFT предметы</div>
+      <div class="section" id="section-nft">
+        <div class="section-title">
+          <div>NFT предметы</div>
+          <div class="section-sub">— уникальные покупки</div>
+        </div>
+
         <div class="item" id="item-lambo">
           <div class="item-left">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23d83d3d'/%3E%3Ctext x='18' y='68' font-size='52' fill='gold' font-weight='bold'%3E🏎️%3C/text%3E%3C/svg%3E" class="item-img" alt="lambo">
+            <img src="photo_5292127048958677180_y.jpg" class="item-img" alt="lambo">
             <div>
               <div class="item-name">Lamborghini</div>
             </div>
@@ -362,13 +371,13 @@
           </div>
         </div>
       </div>
+
+      <div class="info" style="margin-top:10px;">Инвентарь обновится после покупки.</div>
     </div>
 
-    <div id="inventory-panel" class="panel" style="display:none;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <strong style="font-size:1.5rem;">ИНВЕНТАРЬ</strong>
-      </div>
-      <div id="inventory-list" class="info" style="text-align:left;min-height:60px;font-size:1.1rem;">Инвентарь пуст.</div>
+    <div id="inventory-panel" class="panel" style="display:none; margin-top:12px; max-width:360px; width:96vw;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><strong>Инвентарь</strong></div>
+      <div id="inventory-list" class="info" style="text-align:left;min-height:36px;">Инвентарь пуст.</div>
     </div>
   </div>
 
@@ -383,6 +392,7 @@
 
     // Элементы
     const balanceEl = document.getElementById('balance');
+    const balanceLetterEl = document.getElementById('balance-letter');
     const clickPowerEl = document.getElementById('click-power');
     const multiplierEl = document.getElementById('multiplier-value');
     const coinContainer = document.getElementById('coin-container');
@@ -398,9 +408,10 @@
     const buyHyperBtn = document.getElementById('buy-hyper');
     const hyperStatusEl = document.getElementById('hyper-status');
     const hyperBarEl = document.getElementById('hyper-bar');
+    const hyperPriceEl = document.getElementById('hyper-price');
     const buyLamboBtn = document.getElementById('buy-lambo');
     
-    // НОВЫЙ элемент для таймера на главном
+    // Элемент для таймера на главном
     const cyberTimerText = document.getElementById('cyber-timer-text');
     const cyberTimerMain = document.getElementById('cyber-timer-main');
 
@@ -411,15 +422,15 @@
     const HYPER_PRICE = 10000;
     const HYPER_DURATION_MS = 60 * 1000;
     const HYPER_COOLDOWN_MS = 5 * 60 * 1000;
-
-    // Состояние
-    let balance = parseInt(localStorage.getItem('ion_balance')) || 100000; // ДЛЯ ТЕСТА
+    // Состояние (localStorage)
+    let balance = parseInt(localStorage.getItem('ion_balance')) || 0;
     let clickPower = parseInt(localStorage.getItem('ion_power')) || 1;
     let inventory = JSON.parse(localStorage.getItem('ion_inventory') || '[]');
     let x2Level = parseInt(localStorage.getItem('ion_x2_level')) || 0;
     let hyperExpires = parseInt(localStorage.getItem('ion_hyper_expires')) || 0;
     let hyperLastBuy = parseInt(localStorage.getItem('ion_hyper_last_buy')) || 0;
-    // Сохранение
+
+    // Отложенное сохранение
     let saveTimer = null;
     function scheduleSave() {
       if (saveTimer) clearTimeout(saveTimer);
@@ -435,6 +446,7 @@
       saveTimer = null;
     }
 
+    // Helper
     function getNextX2Price() { return X2_BASE_PRICE * (x2Level + 1); }
     function formatTime(ms){
       if (ms <= 0) return '00:00';
@@ -444,22 +456,21 @@
       return mm+':'+ss;
     }
 
-    // Создаём кнопку x2
+    // Создаём кнопку x2 / Max
     const buyX2Btn = document.createElement('button');
     buyX2Btn.className = 'btn';
     buyX2Btn.textContent = 'Купить';
     const x2MaxSpan = document.createElement('div');
     x2MaxSpan.className = 'x2-max';
-    x2MaxSpan.textContent = 'MAX';
+    x2MaxSpan.textContent = 'Max Level';
     x2Action.appendChild(buyX2Btn);
 
-    // Функция обновления таймера на главном экране (НОВАЯ)
+    // Функция обновления таймера на главном экране
     function updateCyberMainTimer() {
       const now = Date.now();
       const hyperActive = hyperExpires > now;
       const cooldownLeft = Math.max(0, (hyperLastBuy + HYPER_COOLDOWN_MS) - now);
       
-      // Удаляем старые классы
       cyberTimerMain.classList.remove('cyber-active', 'cyber-cooldown', 'cyber-ready');
       
       if (hyperActive) {
@@ -474,14 +485,16 @@
       }
     }
 
+    // Рендер
     function renderUI() {
-      balanceEl.textContent = balance;
-      clickPowerEl.textContent = clickPower;
-      multiplierEl.textContent = Math.pow(2, x2Level);
+      // баланс
+      balanceEl.textContent = String(balance);
+      clickPowerEl.textContent = String(clickPower);
+      multiplierEl.textContent = String(Math.pow(2, x2Level));
 
       // x2
       const nextPrice = getNextX2Price();
-      x2PriceEl.textContent = x2Level >= X2_MAX_LEVEL ? 'MAX' : 'Цена: ' + nextPrice + ' IonCoin';
+      x2PriceEl.textContent = x2Level >= X2_MAX_LEVEL ? 'Максимум достигнут' : 'Цена: ' + nextPrice + ' IonCoin';
       if (x2Level >= X2_MAX_LEVEL) {
         if (x2Action.contains(buyX2Btn)) x2Action.replaceChild(x2MaxSpan, buyX2Btn);
       } else {
@@ -489,10 +502,11 @@
         buyX2Btn.disabled = balance < nextPrice;
       }
 
-      // Ламбо
+      // Lamborghini
       buyLamboBtn.disabled = (balance < LAMBO_PRICE) || inventory.includes('lambo');
 
-      // Гиперклик
+      // гиперклик
+      hyperPriceEl.textContent = 'Цена: ' + HYPER_PRICE + ' IonCoin';
       const nowTime = Date.now();
       const hyperActive = hyperExpires > nowTime;
       const cooldownLeft = Math.max(0, (hyperLastBuy + HYPER_COOLDOWN_MS) - nowTime);
@@ -500,97 +514,78 @@
       if (hyperActive) {
         buyHyperBtn.disabled = true;
         hyperStatusEl.textContent = 'Киберклик: АКТИВЕН — осталось ' + formatTime(hyperExpires - nowTime);
-      } else if (cooldownLeft > 0) {
+        } else if (cooldownLeft > 0) {
         buyHyperBtn.disabled = true;
         hyperStatusEl.textContent = 'Перезарядка: ' + formatTime(cooldownLeft);
       } else {
         buyHyperBtn.disabled = balance < HYPER_PRICE;
-        hyperStatusEl.textContent = buyHyperBtn.disabled ? 'Киберклик: недостаточно средств' : 'Киберклик: готов к активации';
+        hyperStatusEl.textContent = buyHyperBtn.disabled ? 'Киберклик: готов (недостаточно средств)' : 'Киберклик: готов к активации';
       }
 
-      // Прогресс-бар
+      // прогресс-бар
       if (hyperActive) {
         const remaining = Math.max(0, hyperExpires - nowTime);
-        const pct = (remaining / HYPER_DURATION_MS) * 100;
+        const pct = Math.max(0, Math.min(100, (remaining / HYPER_DURATION_MS) * 100));
         hyperBarEl.style.width = pct + '%';
         hyperBarEl.className = 'bar-fill';
-        } else if (cooldownLeft > 0) {
-        const elapsed = HYPER_COOLDOWN_MS - cooldownLeft;
-        const pct = (elapsed / HYPER_COOLDOWN_MS) * 100;
+      } else if (cooldownLeft > 0) {
+        const elapsed = Math.max(0, HYPER_COOLDOWN_MS - cooldownLeft);
+        const pct = Math.max(0, Math.min(100, (elapsed / HYPER_COOLDOWN_MS) * 100));
         hyperBarEl.style.width = pct + '%';
         hyperBarEl.className = 'bar-fill-cool';
       } else {
         hyperBarEl.style.width = '0%';
       }
       
-      // Обновляем таймер на главном экране
+      // Обновляем таймер на главном
       updateCyberMainTimer();
     }
 
-    function renderInventory() {
+    // Обновляем инвентарь
+    function renderInventory(){
       const now = Date.now();
       const hyperActive = hyperExpires > now;
       const cooldownLeft = Math.max(0, (hyperLastBuy + HYPER_COOLDOWN_MS) - now);
 
-      let html = '';
-      if (inventory.includes('lambo')) {
-        html += '<div style="display:flex;align-items:center;gap:10px; margin:10px 0;">🏎️ Lamborghini</div>';
-      }
-      if (x2Level > 0) {
-        html += '<div style="margin:10px 0;">✨ Множитель x' + Math.pow(2, x2Level) + ' (ур.' + x2Level + ')</div>';
-      }
-      if (hyperActive) {
-        html += '<div style="margin:10px 0;">⚡ Киберклик (активен)</div>';
-      } else if (cooldownLeft > 0) {
-        html += '<div style="margin:10px 0;">⏳ Киберклик (перезарядка)</div>';
-      } else if (hyperLastBuy) {
-        html += '<div style="margin:10px 0;">🌀 Киберклик (готов)</div>';
-      }
-      
-      inventoryList.innerHTML = html || 'Инвентарь пуст.';
+      const parts = [];
+      if (inventory.includes('lambo')) parts.push('<div style="display:flex;align-items:center;gap:6px;"><img src="photo_5292127048958677180_y.jpg" style="width:20px;height:20px;object-fit:cover;border-radius:4px;"> Lamborghini</div>');
+      if (x2Level>0) parts.push('<div>Множитель x' + Math.pow(2, x2Level) + ' (ур.' + x2Level + ')</div>');
+      if (hyperActive) parts.push('<div>⚡ Киберклик (активен)</div>');
+      else if (cooldownLeft>0) parts.push('<div>⏳ Киберклик (перезарядка)</div>');
+      else if (hyperLastBuy) parts.push('<div>🌀 Киберклик (готов к покупке)</div>');
+
+      inventoryList.innerHTML = parts.length ? parts.join('') : 'Инвентарь пуст.';
     }
 
-    // Покупка x2
+    // Покупки и клики
     buyX2Btn.addEventListener('click', () => {
       if (x2Level >= X2_MAX_LEVEL) return;
       const price = getNextX2Price();
       if (balance >= price) {
         balance -= price;
-        x2Level++;
+        x2Level += 1;
         scheduleSave();
         renderUI();
-        renderInventory();
       } else alert('Недостаточно IonCoin.');
     });
 
-    // Покупка Ламборгини
     buyLamboBtn.addEventListener('click', () => {
-      if (inventory.includes('lambo')) { 
-        alert('У вас уже есть Lamborghini.'); 
-        return; 
-      }
+      if (inventory.includes('lambo')) { alert('У вас уже есть Lamborghini.'); return; }
       if (balance >= LAMBO_PRICE) {
         balance -= LAMBO_PRICE;
         inventory.push('lambo');
         scheduleSave();
         renderUI();
         renderInventory();
-        showLamboModal();
+        showLamboModal(); // Показываем анимацию
       } else alert('Недостаточно IonCoin.');
     });
 
-    // Покупка гиперклика
     buyHyperBtn.addEventListener('click', () => {
       const now = Date.now();
       const cooldownLeft = Math.max(0, (hyperLastBuy + HYPER_COOLDOWN_MS) - now);
-      if (cooldownLeft > 0) { 
-        alert('Киберклик в перезарядке.'); 
-        return; 
-      }
-      if (balance < HYPER_PRICE) { 
-        alert('Недостаточно IonCoin.'); 
-        return; 
-      }
+      if (cooldownLeft > 0) { alert('Киберклик в перезарядке.'); return; }
+      if (balance < HYPER_PRICE) { alert('Недостаточно IonCoin.'); return; }
       balance -= HYPER_PRICE;
       hyperExpires = Date.now() + HYPER_DURATION_MS;
       hyperLastBuy = Date.now();
@@ -599,7 +594,7 @@
       renderInventory();
     });
 
-    // Клик по монете
+    // Клик по монете - ИСПРАВЛЕНО: киберклик дает +100, а не умножает
     coinContainer.addEventListener('click', () => {
       const hyperActive = hyperExpires > Date.now();
       const multiplier = Math.pow(2, x2Level);
@@ -607,6 +602,7 @@
       const gain = Math.max(1, Math.floor(clickPower * multiplier)) + hyperBonus;
       balance += gain;
 
+      // поп-эффект
       const pop = document.createElement('div');
       pop.className = 'plus-one';
       pop.textContent = '+' + gain;
@@ -616,28 +612,17 @@
       scheduleSave();
       renderUI();
     });
-
     // Навигация
-    btnShop.addEventListener('click', () => { 
-      shop.style.display='block'; 
-      inventoryPanel.style.display='none'; 
-    });
-    
-    closeShop.addEventListener('click', ()=>{ 
-      shop.style.display='none'; 
-    });
-    
-    btnInv.addEventListener('click', ()=>{ 
-      inventoryPanel.style.display='block'; 
-      shop.style.display='none'; 
-      renderInventory(); 
-    });
+    btnShop.addEventListener('click', () => { shop.style.display='block'; inventoryPanel.style.display='none'; });
+    closeShop.addEventListener('click', ()=>{ shop.style.display='none'; });
+    btnInv.addEventListener('click', ()=>{ inventoryPanel.style.display='block'; shop.style.display='none'; renderInventory(); });
 
     // Обновление UI
     let lastTick = 0;
     function tick(ts){
       if (!lastTick) lastTick = ts;
-      if (ts - lastTick >= 300) {
+      const delta = ts - lastTick;
+      if (delta >= 300) {
         if (hyperExpires && hyperExpires <= Date.now()) {
           hyperExpires = 0;
           scheduleSave();
@@ -648,22 +633,22 @@
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
-    // Инициализация
+
+    // инициализация
     window.addEventListener('load', () => {
-      if (hyperExpires && hyperExpires <= Date.now()) hyperExpires = 0;
+      if (hyperExpires && hyperExpires <= Date.now()) { hyperExpires = 0; }
       renderUI();
       renderInventory();
     });
 
-    window.addEventListener('beforeunload', () => { 
-      if (saveTimer) clearTimeout(saveTimer); 
-      saveState(); 
-    });
+    // сохранение перед выгрузкой
+    window.addEventListener('beforeunload', () => { if (saveTimer) clearTimeout(saveTimer); saveState(); });
 
-    document.addEventListener('keydown', (e) => { 
-      if (e.key === 'Escape' && shop.style.display === 'block') 
-        shop.style.display = 'none'; 
-    });
+    // клавиша ESC закрывать магазин
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && shop.style.display === 'block') shop.style.display = 'none'; });
+
+    // Предустановки
+    if (!x2Action.contains(buyX2Btn) && !x2Action.contains(x2MaxSpan)) x2Action.appendChild(buyX2Btn);
   </script>
 </body>
 </html>
